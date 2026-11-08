@@ -1,0 +1,49 @@
+repositories {
+    maven { url "https://maven.neoforged.net/releases/" }
+    maven { url "https://thedarkcolour.github.io/KotlinForForge/" }
+}
+
+configurations {
+    commonBundle {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+}
+
+dependencies {
+    neoForge "net.neoforged:neoforge:$rootProject.neoforge_version"
+
+    implementation "dev.architectury:architectury-neoforge:$rootProject.architectury_api_version"
+
+    implementation "thedarkcolour:kotlinforforge-neoforge:$rootProject.kotlinforforge_version"
+    include "thedarkcolour:kotlinforforge-neoforge:$rootProject.kotlinforforge_version"
+
+    implementation project(':common')
+
+    commonBundle(project(path: ':common', configuration: 'transformProductionNeoForge')) {
+        transitive = false
+    }
+}
+
+sourceSets {
+    main {
+        resources.srcDir project(':common').file('src/main/resources')
+    }
+}
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    from({ configurations.commonBundle.collect { zipTree(it) } }) {
+        exclude 'META-INF/MANIFEST.MF'
+        exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+    }
+}
+
+processResources {
+    inputs.property 'version', project.version
+
+    filesMatching('META-INF/neoforge.mods.toml') {
+        expand version: project.version
+    }
+}
