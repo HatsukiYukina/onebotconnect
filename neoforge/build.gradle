@@ -18,6 +18,10 @@ dependencies {
     implementation "thedarkcolour:kotlinforforge-neoforge:$rootProject.kotlinforforge_version"
     include "thedarkcolour:kotlinforforge-neoforge:$rootProject.kotlinforforge_version"
 
+    include("org.java-websocket:Java-WebSocket:1.6.0") {
+        transitive = false
+    }
+
     implementation project(':common')
 
     commonBundle(project(path: ':common', configuration: 'transformProductionNeoForge')) {
@@ -32,6 +36,8 @@ sourceSets {
 }
 
 jar {
+    dependsOn project(':common').tasks.named('transformProductionNeoForge')
+
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     from({ configurations.commonBundle.collect { zipTree(it) } }) {

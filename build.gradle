@@ -31,6 +31,7 @@ subprojects {
         // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
         // See https://docs.gradle.org/current/userguide/declaring_repositories.html
         // for more information about repositories.
+        mavenCentral()
     }
 
     dependencies {
@@ -50,6 +51,18 @@ subprojects {
 
     tasks.withType(JavaCompile).configureEach {
         it.options.release = 25
+    }
+
+    //主入口清单
+    tasks.named('jar') {
+        manifest {
+            from rootProject.file('common/src/main/resources/META-INF/MANIFEST.MF')
+        }
+    }
+
+    //避免重复条目
+    tasks.withType(ProcessResources).configureEach {
+        exclude 'META-INF/MANIFEST.MF'
     }
 
     kotlin {

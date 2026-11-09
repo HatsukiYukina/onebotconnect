@@ -2,10 +2,65 @@ architectury {
     common rootProject.enabled_platforms.split(',')
 }
 
+configurations {
+    standaloneRuntime {
+        canBeResolved = true
+        canBeConsumed = false
+        transitive = false
+    }
+}
+
 dependencies {
     //依赖FabricLoader使用@Environment注解
     implementation "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
 
     //依赖ArchitecturyAPI
     implementation "dev.architectury:architectury:$rootProject.architectury_api_version"
+
+       implementation "org.java-websocket:Java-WebSocket:1.6.0"
+
+    compileOnly "com.google.code.gson:gson:2.13.2"
+
+    testImplementation "com.google.code.gson:gson:2.13.2"
+    testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.11.4"
+    testRuntimeOnly "org.slf4j:slf4j-simple:2.0.17"
+
+    standaloneRuntime "org.java-websocket:Java-WebSocket:1.6.0"
+    standaloneRuntime "com.google.code.gson:gson:2.13.2"
+    standaloneRuntime "org.slf4j:slf4j-api:2.0.17"
+    standaloneRuntime "org.jetbrains.kotlin:kotlin-stdlib:$rootProject.kotlin_version"
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.register('standaloneJar', Jar) {
+    group = 'build'
+    description = 'Executable standalone jar containing net.nyauru.onebotwslib and its runtime dependencies'
+
+    archiveClassifier = 'standalone'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    manifest {
+        from rootProject.file('common/src/main/resources/META-INF/MANIFEST.MF')
+    }
+
+    from(sourceSets.main.output) {
+        include 'net/nyauru/onebotwslib/**'
+    }
+
+    def runtime = configurations.standaloneRuntime
+    from({ runtime.collect { zipTree(it) } }) {
+        exclude 'META-INF/MANIFEST.MF'
+        exclude 'META-INF/INDEX.LIST'
+        exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+        exclude 'META-INF/versions/**'
+        exclude 'module-info.class'
+    }
+}
+
+tasks.named('assemble') {
+    dependsOn tasks.named('standaloneJar')
 }
