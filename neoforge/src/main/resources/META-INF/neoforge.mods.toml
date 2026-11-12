@@ -40,3 +40,10 @@ type="required"
 versionRange="[6.4.0,)"
 ordering="NONE"
 side="BOTH"
+
+[[dependencies.onebotconnect]]
+modId="cloth_config"
+type="required"
+versionRange="[26.1.154,)"
+ordering="NONE"
+side="BOTH"

@@ -13,6 +13,8 @@ dependencies {
     implementation "net.fabricmc:fabric-language-kotlin:$rootProject.fabric_language_kotlin_version"
     include "net.fabricmc:fabric-language-kotlin:$rootProject.fabric_language_kotlin_version"
 
+    implementation "me.shedaniel.cloth:cloth-config-fabric:$rootProject.cloth_config_version"
+
     include("org.java-websocket:Java-WebSocket:1.6.0") {
         transitive = false
     }

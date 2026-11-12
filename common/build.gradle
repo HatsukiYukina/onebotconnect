@@ -19,6 +19,9 @@ dependencies {
 
        implementation "org.java-websocket:Java-WebSocket:1.6.0"
 
+    //依赖ClothConfig使用AutoConfig读写配置文件
+    compileOnly "me.shedaniel.cloth:cloth-config:$rootProject.cloth_config_version"
+
     compileOnly "com.google.code.gson:gson:2.13.2"
 
     testImplementation "com.google.code.gson:gson:2.13.2"

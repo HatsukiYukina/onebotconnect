@@ -30,7 +30,8 @@
     "java": ">=25",
     "architectury": ">=20.1.17",
     "fabric-api": "*",
-    "fabric-language-kotlin": ">=1.14.2+kotlin.2.4.21"
+    "fabric-language-kotlin": ">=1.14.2+kotlin.2.4.21",
+    "cloth-config": ">=26.1.154"
   },
   "suggests": {
     "another-mod": "*"

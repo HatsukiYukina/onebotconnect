@@ -1,3 +1,12 @@
+loom {
+    mods {
+        onebotconnect {
+            sourceSet sourceSets.main
+            sourceSet("main", project(':common'))
+        }
+    }
+}
+
 repositories {
     maven { url "https://maven.neoforged.net/releases/" }
     maven { url "https://thedarkcolour.github.io/KotlinForForge/" }
@@ -17,6 +26,8 @@ dependencies {
 
     implementation "thedarkcolour:kotlinforforge-neoforge:$rootProject.kotlinforforge_version"
     include "thedarkcolour:kotlinforforge-neoforge:$rootProject.kotlinforforge_version"
+
+    implementation "me.shedaniel.cloth:cloth-config-neoforge:$rootProject.cloth_config_version"
 
     include("org.java-websocket:Java-WebSocket:1.6.0") {
         transitive = false
