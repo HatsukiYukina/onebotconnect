@@ -12,6 +12,9 @@ package net.nyauru.onebotconnect.config;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * onebotconnect 的配置文件（config/onebotconnect.json）。
  * 字段与 net.nyauru.onebotwslib.adapter.config.OneBotConfig 一一对应，
@@ -28,7 +31,8 @@ public class BotConfig implements ConfigData {
     public boolean autoReconnect = true;
     public int reconnectIntervalSeconds = 5;
     public int actionTimeoutSeconds = 30;
-
+    //配置需要发送消息的群聊
+    public List<Long> groupIds = new ArrayList<>();
 
     @Override
     public void validatePostLoad() throws ValidationException {
@@ -53,6 +57,15 @@ public class BotConfig implements ConfigData {
         if (actionTimeoutSeconds <= 0) {
             throw new ValidationException("actionTimeoutSeconds must be positive");
         }
+        List<Long> validGroupIds = new ArrayList<>();
+        if(groupIds != null){
+            for(Long groupId : groupIds){
+                if(groupId != null && groupId > 0){
+                    validGroupIds.add(groupId);
+                }
+            }
+        }
+        groupIds = validGroupIds;
     }
 
     public enum Scheme {

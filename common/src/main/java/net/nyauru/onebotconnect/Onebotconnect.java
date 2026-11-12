@@ -9,6 +9,7 @@ package net.nyauru.onebotconnect;
 import dev.architectury.event.events.common.LifecycleEvent;
 import net.nyauru.onebotconnect.config.BotConfigManager;
 import net.nyauru.onebotconnect.utils.OnebotRuntimeUtil;
+import net.nyauru.onebotconnect.utils.ServerRuntimeEvents;
 
 public final class Onebotconnect {
     public static final String MOD_ID = "onebotconnect";
@@ -17,10 +18,12 @@ public final class Onebotconnect {
         // Write common init code here.
         // 注册配置文件，启动时读取或生成 config/onebotconnect.json
         BotConfigManager.init();
+        //注册监听服务器事件
+        ServerRuntimeEvents.register();
         // 启动服务器时连接onebot（异步执行，避免阻塞服务器线程）
-        LifecycleEvent.SERVER_STARTED.register(server ->
+        LifecycleEvent.SERVER_BEFORE_START.register(server ->
                 Thread.ofPlatform().daemon().name("onebotconnect-connect").start(OnebotRuntimeUtil::connect));
-        LifecycleEvent.SERVER_STOPPING.register(server -> OnebotRuntimeUtil.close());
+        LifecycleEvent.SERVER_STOPPED.register(server -> OnebotRuntimeUtil.close());
     }
 
 }

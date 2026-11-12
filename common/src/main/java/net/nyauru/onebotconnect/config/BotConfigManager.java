@@ -15,6 +15,7 @@ import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.nyauru.onebotwslib.adapter.config.OneBotConfig;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -99,5 +100,9 @@ public final class BotConfigManager implements OneBotConfig {
     @Override
     public Duration getActionTimeout() {
         return Duration.ofSeconds(config().actionTimeoutSeconds);
+    }
+
+    public static List<Long> groupIds(){
+        return List.copyOf(config().groupIds);
     }
 }
