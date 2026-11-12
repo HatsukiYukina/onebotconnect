@@ -22,7 +22,9 @@ public final class Onebotconnect {
         ServerRuntimeEvents.register();
         // 启动服务器时连接onebot（异步执行，避免阻塞服务器线程）
         LifecycleEvent.SERVER_BEFORE_START.register(server ->
-                Thread.ofPlatform().daemon().name("onebotconnect-connect").start(OnebotRuntimeUtil::connect));
+        {
+            Thread.ofPlatform().daemon().name("onebotconnect-connect").start(OnebotRuntimeUtil::connect);
+        });
         LifecycleEvent.SERVER_STOPPED.register(server -> OnebotRuntimeUtil.close());
     }
 

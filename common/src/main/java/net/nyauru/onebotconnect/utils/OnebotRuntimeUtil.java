@@ -13,15 +13,19 @@ import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.entity.player.Player;
 import net.nyauru.onebotconnect.config.BotConfigManager;
 import net.nyauru.onebotwslib.adapter.client.OneBotClient;
-import net.nyauru.onebotwslib.adapter.config.OneBotConfig;
+import net.nyauru.onebotwslib.adapter.client.OneBotConnectionListener;
+import net.nyauru.onebotwslib.adapter.client.OneBotConnectionState;
 import net.nyauru.onebotwslib.adapter.event.GroupMessageEvent;
 import net.nyauru.onebotwslib.adapter.event.MessageEvent;
 import net.nyauru.onebotwslib.adapter.event.MessageEventListener;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 
 public class OnebotRuntimeUtil {
+    private static final Logger LOGGER = LogManager.getLogger("onebotconnect");
     private static MinecraftServer server = GameInstance.getServer();
     public static final OneBotClient CLIENT = new OneBotClient(BotConfigManager.getInstance(),
             new MessageEventListener() {
@@ -41,18 +45,37 @@ public class OnebotRuntimeUtil {
                     for (Player p : playerList.getPlayers()) {
                         p.sendSystemMessage(Component.literal("[" + (event.getMessageType().equals("group") ? "群聊" : "私聊") + "]" + event.getSender().getNickname().toString() + ":" + event.getPlainText()));
                     }
-                    System.out.println(event.getMessage());
+                    //System.out.println(event.getMessage());
                 }
             },
             null);
     //private static MinecraftServer server = GameInstance.getServer();
     public static void connect(){
         BotGroupCache.register();
-        CLIENT.connectBlocking(Duration.ofSeconds(10));
+        CLIENT.addConnectionListener(new OneBotConnectionListener() {
+            @Override
+            public void onStateChanged(@NotNull OneBotConnectionState state) {
+                LOGGER.info("[ONEBOT] state -> {}", state);
+                if(state instanceof OneBotConnectionState.Reconnecting r){
+                    LOGGER.warn("[ONEBOT] Reconnecting #{} in {}",r.getAttempt(), r.getDelay());
+                }
+            }
+
+            @Override
+            public void onError(@NotNull Throwable error) {
+                LOGGER.error("[ONEBOT] Connection broken", error);
+            }
+        });
+        if(CLIENT.connectBlocking(Duration.ofSeconds(10))){
+            LOGGER.info("[ONEBOT] Connected to {}://{}:{}", BotConfigManager.config().scheme, BotConfigManager.config().host, BotConfigManager.config().port);
+        } else {
+            LOGGER.error("[ONEBOT] Connection FAILED, trying to reconnect in {}s", BotConfigManager.config().reconnectIntervalSeconds);
+        }
         //demo内容
         // CLIENT.sendPrivateMessage(1652039138L,"服务器已启动喵");
     }
     public static void close(){
+        //在客户端集成服务器上不释放client对象以便下次启动时复用
         if(!server.isDedicatedServer()){
             disconnect();
         } else {

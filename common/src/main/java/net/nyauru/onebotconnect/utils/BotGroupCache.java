@@ -14,6 +14,8 @@ import net.nyauru.onebotwslib.adapter.client.ActionResponse;
 import net.nyauru.onebotwslib.adapter.client.OneBotClient;
 import net.nyauru.onebotwslib.adapter.client.OneBotConnectionListener;
 import net.nyauru.onebotwslib.adapter.client.OneBotConnectionState;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -26,7 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class BotGroupCache {
     private static final OneBotClient CLIENT = OnebotRuntimeUtil.CLIENT;
     private static final AtomicBoolean REGISTERED = new AtomicBoolean(false);
-
+    private static final Logger LOGGER = LogManager.getLogger("onebotconnect");
     private static volatile Map<Long, String> groups = Map.of(); // id -> 群名，方便打日志/做指令
 
     private BotGroupCache() {
@@ -63,20 +65,23 @@ public final class BotGroupCache {
 
     /** 是否属于 bot 所在群（不在缓存里就不放行，fail-closed） */
     public static boolean isKnownGroup(long groupId) {
+        LOGGER.debug("[ONEBOT] Current message is not in the whitelist groups,SKIPPING");
         return groups.containsKey(groupId);
     }
 
     /** 异步刷新，不阻塞任何线程 */
     public static void refreshAsync() {
+        LOGGER.info("[ONEBOT] Getting existing groups...");
         CLIENT.callAction("get_group_list", Map.of()).whenComplete((response, error) -> {
             if (error != null) {
-                error.printStackTrace();
+                LOGGER.warn("[ONEBOT] Unable to get existing groups", error);
                 return; // 保留上一次结果
             }
             Map<Long, String> parsed = parse(response);
             if (!parsed.isEmpty()) {
                 groups = Map.copyOf(parsed);
             }
+            LOGGER.info("[ONEBOT] Got all existing groups");
         });
     }
 
