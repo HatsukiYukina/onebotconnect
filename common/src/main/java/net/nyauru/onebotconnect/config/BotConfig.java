@@ -33,6 +33,8 @@ public class BotConfig implements ConfigData {
     public int actionTimeoutSeconds = 30;
     //配置需要发送消息的群聊
     public List<Long> groupIds = new ArrayList<>();
+    //配置服务器名称（可选）
+    public String serverName = "";
 
     @Override
     public void validatePostLoad() throws ValidationException {
@@ -66,6 +68,11 @@ public class BotConfig implements ConfigData {
             }
         }
         groupIds = validGroupIds;
+
+        String validServerName = "MC";
+        if(serverName.isEmpty()){
+            serverName = validServerName;
+        }
     }
 
     public enum Scheme {

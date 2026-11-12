@@ -51,7 +51,9 @@ public class OnebotRuntimeUtil {
             null);
     //private static MinecraftServer server = GameInstance.getServer();
     public static void connect(){
+        //初始化群聊列表
         BotGroupCache.register();
+        //连接前注册一个状态监听器
         CLIENT.addConnectionListener(new OneBotConnectionListener() {
             @Override
             public void onStateChanged(@NotNull OneBotConnectionState state) {
@@ -59,6 +61,11 @@ public class OnebotRuntimeUtil {
                 if(state instanceof OneBotConnectionState.Reconnecting r){
                     LOGGER.warn("[ONEBOT] Reconnecting #{} in {}",r.getAttempt(), r.getDelay());
                 }
+//                else if (state instanceof OneBotConnectionState.Connected){
+//                    for(Long groupId : BotConfigManager.groupIds()){
+//                        CLIENT.sendGroupMessage(groupId, "▌ 群服互联已连接 ┈━═☆");
+//                    }
+//                }
             }
 
             @Override
@@ -67,6 +74,9 @@ public class OnebotRuntimeUtil {
             }
         });
         if(CLIENT.connectBlocking(Duration.ofSeconds(10))){
+            for(Long groupId : BotConfigManager.groupIds()){
+                CLIENT.sendGroupMessage(groupId, "▌ 群服互联已连接 ┈━═☆");
+            }
             LOGGER.info("[ONEBOT] Connected to {}://{}:{}", BotConfigManager.config().scheme, BotConfigManager.config().host, BotConfigManager.config().port);
         } else {
             LOGGER.error("[ONEBOT] Connection FAILED, trying to reconnect in {}s", BotConfigManager.config().reconnectIntervalSeconds);

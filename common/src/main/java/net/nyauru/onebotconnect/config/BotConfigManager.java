@@ -105,4 +105,8 @@ public final class BotConfigManager implements OneBotConfig {
     public static List<Long> groupIds(){
         return List.copyOf(config().groupIds);
     }
+
+    public static String serverName(){
+        return config().serverName;
+    }
 }

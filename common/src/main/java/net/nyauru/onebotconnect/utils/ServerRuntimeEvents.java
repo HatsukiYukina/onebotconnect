@@ -7,9 +7,9 @@
 package net.nyauru.onebotconnect.utils;
 
 import dev.architectury.event.EventResult;
+import dev.architectury.event.events.common.ChatEvent;
 import dev.architectury.event.events.common.EntityEvent;
 import dev.architectury.event.events.common.PlayerEvent;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -38,7 +38,17 @@ public class ServerRuntimeEvents {
             }
             return EventResult.pass();
         });
+        //玩家消息回传到onebot
+        ChatEvent.RECEIVED.register(((player, component) -> {
+            if(OnebotRuntimeUtil.CLIENT.isConnected()){
+                if (player != null) {
+                    sendGroupMessage("[" + BotConfigManager.serverName() + "]<" + player.getPlainTextName() + "> " + component.getString());
+                }
+            }
+            return EventResult.pass();
+        }));
     }
+    //@TODO 僵尸连接检测与清除
     private static void sendGroupMessage(String message){
         List<Long> groupIds = BotConfigManager.groupIds();
         for(Long groupId : groupIds){
