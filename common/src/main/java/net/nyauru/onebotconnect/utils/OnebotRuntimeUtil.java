@@ -75,6 +75,7 @@ public class OnebotRuntimeUtil {
         });
         if(CLIENT.connectBlocking(Duration.ofSeconds(10))){
             for(Long groupId : BotConfigManager.groupIds()){
+                //连接成功时发送消息
                 CLIENT.sendGroupMessage(groupId, "▌ 群服互联已连接 ┈━═☆");
             }
             LOGGER.info("[ONEBOT] Connected to {}://{}:{}", BotConfigManager.config().scheme, BotConfigManager.config().host, BotConfigManager.config().port);
