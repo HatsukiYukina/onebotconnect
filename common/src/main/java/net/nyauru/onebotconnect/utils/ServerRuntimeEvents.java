@@ -14,6 +14,7 @@ import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.nyauru.onebotconnect.config.BotConfigManager;
@@ -39,7 +40,7 @@ public class ServerRuntimeEvents {
                 if (source.getEntity() != null) {
                     sendGroupMessage(player.getPlainTextName() + "死于" + source.getEntity().getPlainTextName()+ "的毒手");
                 } else {
-                    sendGroupMessage(player.getPlainTextName() + " 死了");
+                    sendGroupMessage(player.getPlainTextName() + getInfoByDamageSource(source));
                 }
             }
             return EventResult.pass();
@@ -79,6 +80,24 @@ public class ServerRuntimeEvents {
         } else {
             LOGGER.warn("OneBot is NOT CONNECTED, skipping sending group message!");
         }
+    }
 
+    private static String getInfoByDamageSource(DamageSource source){
+        if(source.is(DamageTypes.FALL)){
+            return "摔死了";
+        } else if(source.is(DamageTypes.DROWN)){
+            return "淹死了";
+        } else if(source.is(DamageTypes.IN_FIRE)){
+            return "烧死了";
+        } else if(source.is(DamageTypes.LAVA)){
+            return "试图在岩浆里游泳";
+        } else if(source.is(DamageTypes.STARVE)){
+            return "饿死了";
+        } else if(source.is(DamageTypes.FELL_OUT_OF_WORLD)){
+            return "掉出了这个世界";
+        } else if(source.is(DamageTypes.EXPLOSION)){
+            return "爆炸了";
+        }
+        return "死了";
     }
 }

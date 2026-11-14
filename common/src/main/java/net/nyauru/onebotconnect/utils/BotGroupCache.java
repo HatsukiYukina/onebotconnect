@@ -62,7 +62,6 @@ public final class BotGroupCache {
 
     //是否属于bot所在群
     public static boolean isKnownGroup(long groupId) {
-        LOGGER.debug("[ONEBOT] Current message is not in the whitelist groups,SKIPPING");
         return groups.containsKey(groupId);
     }
 
