@@ -7,6 +7,9 @@ package net.nyauru.onebotwslib.adapter.client
 
 import java.net.URI
 
+//连接阶段硬编码超时
+internal const val CONNECT_TIMEOUT_MILLIS = 10_000
+
 internal interface Transport {
     fun isOpen(): Boolean
     fun connect()

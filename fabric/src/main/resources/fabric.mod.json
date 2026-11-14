@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "onebotconnect",
-  "version": "${version}",
+  "version": "0.1.0a",
   "name": "OnebotConnect",
   "description": "",
   "authors": [

@@ -6,6 +6,7 @@
 
 package net.nyauru.onebotconnect.utils;
 
+import dev.architectury.platform.Platform;
 import dev.architectury.utils.GameInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
@@ -23,9 +24,12 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class OnebotRuntimeUtil {
     private static final Logger LOGGER = LogManager.getLogger("onebotconnect");
+    private static final DateTimeFormatter CONNECT_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy.MM.dd.HH:mm");
     private static MinecraftServer server = GameInstance.getServer();
     public static final OneBotClient CLIENT = new OneBotClient(BotConfigManager.getInstance(),
             new MessageEventListener() {
@@ -74,13 +78,20 @@ public class OnebotRuntimeUtil {
             }
         });
         if(CLIENT.connectBlocking(Duration.ofSeconds(10))){
+            //连接成功时发送消息
+            String connectMessage = "OnebotConnect已连接\n"
+                    + "游戏版本" + Platform.getMinecraftVersion()
+                    + " 时间" + LocalDateTime.now().format(CONNECT_TIME_FORMAT)
+                    + " 模组" + Platform.getMod("onebotconnect").getVersion() + "-" + loaderName()
+                    + " 服务器[" + BotConfigManager.serverName() + "]";
             for(Long groupId : BotConfigManager.groupIds()){
-                //连接成功时发送消息
-                CLIENT.sendGroupMessage(groupId, "▌ 群服互联已连接 ┈━═☆");
+                CLIENT.sendGroupMessage(groupId, connectMessage);
             }
             LOGGER.info("[ONEBOT] Connected to {}://{}:{}", BotConfigManager.config().scheme, BotConfigManager.config().host, BotConfigManager.config().port);
+        } else if(CLIENT.getState() instanceof OneBotConnectionState.Reconnecting r){
+            LOGGER.error("[ONEBOT] Connection FAILED, reconnecting #{} in {}", r.getAttempt(), r.getDelay());
         } else {
-            LOGGER.error("[ONEBOT] Connection FAILED, trying to reconnect in {}s", BotConfigManager.config().reconnectIntervalSeconds);
+            LOGGER.error("[ONEBOT] Connection FAILED, current state: {}", CLIENT.getState());
         }
         //demo内容
         // CLIENT.sendPrivateMessage(1652039138L,"服务器已启动喵");
@@ -97,6 +108,15 @@ public class OnebotRuntimeUtil {
         if(CLIENT.isConnected()){
             CLIENT.disconnect();
         }
+    }
+
+    private static String loaderName(){
+        if(Platform.isFabric()){
+            return "fabric";
+        } else if(Platform.isNeoForge()){
+            return "neoforge";
+        }
+        return "unknown";
     }
 
 }

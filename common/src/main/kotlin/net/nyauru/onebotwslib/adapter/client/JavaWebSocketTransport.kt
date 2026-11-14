@@ -11,6 +11,7 @@ package net.nyauru.onebotwslib.adapter.client
 
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_6455
+import org.java_websocket.enums.ReadyState
 import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
 import java.nio.ByteBuffer
@@ -20,7 +21,7 @@ internal class JavaWebSocketTransport(
     headers: Map<String, String>,
     heartbeatSeconds: Int,
     private val callbacks: TransportListener,
-) : WebSocketClient(uri, Draft_6455(), headers), Transport {
+) : WebSocketClient(uri, Draft_6455(), headers, CONNECT_TIMEOUT_MILLIS), Transport {
 
     init {
         //守护线程
@@ -36,6 +37,12 @@ internal class JavaWebSocketTransport(
 
     override fun close(code: Int, reason: String) {
         super.close(code, reason)
+        if (readyState == ReadyState.NOT_YET_CONNECTED) {
+            try {
+                getSocket()?.close()
+            } catch (_: Exception) {
+            }
+        }
     }
 
     override fun send(text: String) {

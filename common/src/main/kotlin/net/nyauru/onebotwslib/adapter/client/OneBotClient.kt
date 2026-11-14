@@ -74,6 +74,9 @@ class OneBotClient internal constructor(
 
     @Volatile
     private var reconnectTask: ScheduledFuture<*>? = null
+
+    //连接阶段看门狗
+    private var connectWatchdogTask: ScheduledFuture<*>? = null
     private var reconnectAttempt = 0
     private var userClosed = false
     private var terminalClosed = false
@@ -95,6 +98,7 @@ class OneBotClient internal constructor(
             if (currentTransport != null) return
             reconnectTask?.cancel(false)
             reconnectTask = null
+            cancelConnectWatchdogLocked()
             userClosed = false
             reconnectAttempt = 0
             startTransportLocked()
@@ -143,6 +147,7 @@ class OneBotClient internal constructor(
             userClosed = true
             reconnectTask?.cancel(false)
             reconnectTask = null
+            cancelConnectWatchdogLocked()
             reconnectAttempt = 0
             transport = currentTransport
             currentTransport = null
@@ -167,6 +172,7 @@ class OneBotClient internal constructor(
             userClosed = true
             reconnectTask?.cancel(false)
             reconnectTask = null
+            cancelConnectWatchdogLocked()
             transport = currentTransport
             currentTransport = null
             setState(OneBotConnectionState.Closing)
@@ -293,6 +299,7 @@ class OneBotClient internal constructor(
 
         try {
             transport.connect()
+            scheduleConnectWatchdogLocked(transport)
         } catch (t: Throwable) {
             currentTransport = null
             reportError(t)
@@ -303,6 +310,7 @@ class OneBotClient internal constructor(
     private fun handleOpen(transport: Transport) {
         synchronized(lifecycleLock) {
             if (currentTransport !== transport) return
+            cancelConnectWatchdogLocked()
             reconnectAttempt = 0
             setState(OneBotConnectionState.Connected)
         }
@@ -321,6 +329,7 @@ class OneBotClient internal constructor(
         synchronized(lifecycleLock) {
             if (currentTransport !== transport) return
             currentTransport = null
+            cancelConnectWatchdogLocked()
             val detail = buildString {
                 append("WebSocket closed (code=")
                 append(code)
@@ -341,6 +350,7 @@ class OneBotClient internal constructor(
             if (currentTransport !== transport) return
             if (!transport.isOpen()) {
                 currentTransport = null
+                cancelConnectWatchdogLocked()
                 failPendingActions("WebSocket error: ${error.message}")
                 scheduleReconnectOrDisconnectLocked(error)
             }
@@ -348,13 +358,13 @@ class OneBotClient internal constructor(
     }
 
     private fun scheduleReconnectOrDisconnectLocked(lastError: Throwable?) {
-        if (terminalClosed || userClosed || !config.autoReconnect) {
+        if (terminalClosed || userClosed || !config.autoReconnect || reconnectAttempt >= MAX_RECONNECT_ATTEMPTS) {
             setState(OneBotConnectionState.Disconnected)
             return
         }
 
         reconnectAttempt += 1
-        val delay = config.reconnectInterval
+        val delay = nextReconnectDelay()
         setState(OneBotConnectionState.Reconnecting(reconnectAttempt, delay, lastError))
         reconnectTask = try {
             scheduler.schedule(
@@ -370,6 +380,49 @@ class OneBotClient internal constructor(
         } catch (_: RejectedExecutionException) {
             null
         }
+    }
+
+    //重连延迟指数退避
+    private fun nextReconnectDelay(): Duration {
+        val maxMillis = MAX_RECONNECT_INTERVAL.toMillis()
+        val baseMillis = config.reconnectInterval.toMillis().coerceIn(0L, maxMillis)
+        if (baseMillis == 0L) return Duration.ZERO
+        val shift = (reconnectAttempt - 1).coerceIn(0, 30)
+        return Duration.ofMillis((baseMillis shl shift).coerceAtMost(maxMillis))
+    }
+
+    //连接阶段看门狗
+    private fun scheduleConnectWatchdogLocked(transport: Transport) {
+        cancelConnectWatchdogLocked()
+        connectWatchdogTask = try {
+            scheduler.schedule(
+                {
+                    synchronized(lifecycleLock) {
+                        if (currentTransport !== transport || transport.isOpen()) return@synchronized
+                        currentTransport = null
+                        connectWatchdogTask = null
+                        try {
+                            transport.close()
+                        } catch (t: Throwable) {
+                            reportError(t)
+                        }
+                        failPendingActions("connection timed out")
+                        scheduleReconnectOrDisconnectLocked(
+                            OneBotConnectionException("connection timed out after ${CONNECT_TIMEOUT_MILLIS}ms"),
+                        )
+                    }
+                },
+                CONNECT_TIMEOUT_MILLIS.toLong(),
+                TimeUnit.MILLISECONDS,
+            )
+        } catch (_: RejectedExecutionException) {
+            null
+        }
+    }
+
+    private fun cancelConnectWatchdogLocked() {
+        connectWatchdogTask?.cancel(false)
+        connectWatchdogTask = null
     }
 
     private fun completeAction(response: ActionResponse) {
@@ -460,6 +513,14 @@ class OneBotClient internal constructor(
     ) {
         @Volatile
         var timeoutTask: ScheduledFuture<*>? = null
+    }
+
+    private companion object {
+        //重连间隔上限
+        val MAX_RECONNECT_INTERVAL: Duration = Duration.ofSeconds(120)
+
+        //单次断线最多重连上限
+        const val MAX_RECONNECT_ATTEMPTS = 10
     }
 }
 

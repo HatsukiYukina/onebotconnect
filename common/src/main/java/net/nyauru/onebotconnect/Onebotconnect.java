@@ -16,11 +16,11 @@ public final class Onebotconnect {
 
     public static void init() {
         // Write common init code here.
-        // 注册配置文件，启动时读取或生成 config/onebotconnect.json
+        //注册配置文件，启动时读取或生成config/onebotconnect.json
         BotConfigManager.init();
         //注册监听服务器事件
         ServerRuntimeEvents.register();
-        // 启动服务器时连接onebot（异步执行，避免阻塞服务器线程）
+        //启动服务器时连接onebot
         LifecycleEvent.SERVER_BEFORE_START.register(server ->
         {
             Thread.ofPlatform().daemon().name("onebotconnect-connect").start(OnebotRuntimeUtil::connect);

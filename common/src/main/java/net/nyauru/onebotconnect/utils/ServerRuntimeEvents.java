@@ -37,7 +37,7 @@ public class ServerRuntimeEvents {
         EntityEvent.LIVING_DEATH.register((LivingEntity entity, DamageSource source) -> {
             if(entity instanceof Player player){
                 if (source.getEntity() != null) {
-                    sendGroupMessage(player.getPlainTextName() + " was slain by " + source.getEntity().getPlainTextName());
+                    sendGroupMessage(player.getPlainTextName() + "死于" + source.getEntity().getPlainTextName()+ "的毒手");
                 } else {
                     sendGroupMessage(player.getPlainTextName() + " 死了");
                 }
@@ -57,9 +57,9 @@ public class ServerRuntimeEvents {
         PlayerEvent.PLAYER_ADVANCEMENT.register((serverPlayer, advancementHolder) -> {
             //取得玩家当前成就信息
             Advancement advancement = advancementHolder.value();
-            DisplayInfo info = advancement.display().get();
-            //不展示技术性进度
-            if(!info.shouldAnnounceChat()){
+            DisplayInfo info = advancement.display().orElse(null);
+            //不展示技术性进度与无展示信息的进度
+            if(info == null || !info.shouldAnnounceChat()){
                 return;
             }
             Component advancementTitle = info.getTitle();

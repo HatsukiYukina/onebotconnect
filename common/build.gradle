@@ -25,8 +25,6 @@ dependencies {
     compileOnly "com.google.code.gson:gson:2.13.2"
 
     testImplementation "com.google.code.gson:gson:2.13.2"
-    testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.11.4"
     testRuntimeOnly "org.slf4j:slf4j-simple:2.0.17"
 
     standaloneRuntime "org.java-websocket:Java-WebSocket:1.6.0"
@@ -35,9 +33,7 @@ dependencies {
     standaloneRuntime "org.jetbrains.kotlin:kotlin-stdlib:$rootProject.kotlin_version"
 }
 
-tasks.named('test') {
-    useJUnitPlatform()
-}
+
 
 tasks.register('standaloneJar', Jar) {
     group = 'build'
