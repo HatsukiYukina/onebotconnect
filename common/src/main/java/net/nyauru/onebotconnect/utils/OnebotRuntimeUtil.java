@@ -32,7 +32,7 @@ public class OnebotRuntimeUtil {
     private static final Logger LOGGER = LogManager.getLogger("onebotconnect");
     private static final DateTimeFormatter CONNECT_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy.MM.dd|HH:mm");
     private static final AtomicBoolean CONNECTION_LISTENER_REGISTERED = new AtomicBoolean(false);
-    private static MinecraftServer server = GameInstance.getServer();
+    public static MinecraftServer server = GameInstance.getServer();
     public static final OneBotClient CLIENT = new OneBotClient(BotConfigManager.getInstance(),
             new MessageEventListener() {
                 @Override
@@ -90,7 +90,7 @@ public class OnebotRuntimeUtil {
                         + "游戏版本" + Platform.getMinecraftVersion()
                         + " 时间" + LocalDateTime.now().format(CONNECT_TIME_FORMAT)
                         + " 模组" + Platform.getMod("onebotconnect").getVersion() + "-" + loaderName()
-                        + " 服务器[" + BotConfigManager.serverName() + "]";
+                        + (server.isDedicatedServer()? " 服务器[": "客户端集成服务器[") + BotConfigManager.serverName() + "]";
                 for(Long groupId : BotConfigManager.effectiveGroupIds()){
                     CLIENT.sendGroupMessage(groupId, connectMessage);
                 }
