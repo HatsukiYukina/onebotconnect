@@ -22,9 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * 缓存 bot 所在群聊的 id（通过 get_group_list 获取），用于过滤进入 Minecraft 的群消息。
- */
+//缓存bot所在群聊的id用于过滤进入Minecraft的群消息
 public final class BotGroupCache {
     private static final OneBotClient CLIENT = OnebotRuntimeUtil.CLIENT;
     private static final AtomicBoolean REGISTERED = new AtomicBoolean(false);
@@ -34,7 +32,6 @@ public final class BotGroupCache {
     private BotGroupCache() {
     }
 
-    /** 只调用一次：连接成功（含重连）后自动刷新 */
     public static void register() {
         if (!REGISTERED.compareAndSet(false, true)) {
             return;
@@ -54,7 +51,7 @@ public final class BotGroupCache {
         });
     }
 
-    /** 当前缓存的群（不可变） */
+    //当前缓存的群
     public static Set<Long> groupIds() {
         return groups.keySet();
     }
@@ -63,13 +60,13 @@ public final class BotGroupCache {
         return groups;
     }
 
-    /** 是否属于 bot 所在群（不在缓存里就不放行，fail-closed） */
+    //是否属于bot所在群
     public static boolean isKnownGroup(long groupId) {
         LOGGER.debug("[ONEBOT] Current message is not in the whitelist groups,SKIPPING");
         return groups.containsKey(groupId);
     }
 
-    /** 异步刷新，不阻塞任何线程 */
+    //异步刷新
     public static void refreshAsync() {
         LOGGER.info("[ONEBOT] Getting existing groups...");
         CLIENT.callAction("get_group_list", Map.of()).whenComplete((response, error) -> {
@@ -85,7 +82,6 @@ public final class BotGroupCache {
         });
     }
 
-    /** 同步刷新：启动阶段用，别在服务器线程调用（最长等 actionTimeout） */
     public static Set<Long> refreshNow() {
         try {
             Map<Long, String> parsed = parse(CLIENT.callAction("get_group_list", Map.of()).join());

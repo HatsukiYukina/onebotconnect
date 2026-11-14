@@ -71,7 +71,7 @@ public class ServerRuntimeEvents {
     }
     //@TODO 僵尸连接检测与清除
     private static void sendGroupMessage(String message){
-        List<Long> groupIds = BotConfigManager.groupIds();
+        List<Long> groupIds = BotConfigManager.effectiveGroupIds();
         if(OnebotRuntimeUtil.CLIENT.isConnected()){
             for(Long groupId : groupIds){
                 OnebotRuntimeUtil.CLIENT.sendGroupMessage(groupId, message);

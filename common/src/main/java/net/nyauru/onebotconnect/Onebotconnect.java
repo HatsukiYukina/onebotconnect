@@ -6,7 +6,9 @@
 
 package net.nyauru.onebotconnect;
 
+import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
+import net.nyauru.onebotconnect.command.OnebotCommand;
 import net.nyauru.onebotconnect.config.BotConfigManager;
 import net.nyauru.onebotconnect.utils.OnebotRuntimeUtil;
 import net.nyauru.onebotconnect.utils.ServerRuntimeEvents;
@@ -20,10 +22,12 @@ public final class Onebotconnect {
         BotConfigManager.init();
         //注册监听服务器事件
         ServerRuntimeEvents.register();
+        //注册指令
+        CommandRegistrationEvent.EVENT.register(OnebotCommand::register);
         //启动服务器时连接onebot
         LifecycleEvent.SERVER_BEFORE_START.register(server ->
         {
-            Thread.ofPlatform().daemon().name("onebotconnect-connect").start(OnebotRuntimeUtil::connect);
+            Thread.ofPlatform().daemon().name("onebotconnect-connect").start(() -> OnebotRuntimeUtil.connect());
         });
         LifecycleEvent.SERVER_STOPPED.register(server -> OnebotRuntimeUtil.close());
     }
