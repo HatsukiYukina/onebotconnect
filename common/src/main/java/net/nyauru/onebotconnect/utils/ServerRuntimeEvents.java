@@ -13,10 +13,13 @@ import dev.architectury.event.events.common.PlayerEvent;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.network.chat.Component;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.nyauru.onebotconnect.config.BotConfigManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,7 +41,15 @@ public class ServerRuntimeEvents {
         EntityEvent.LIVING_DEATH.register((LivingEntity entity, DamageSource source) -> {
             if(entity instanceof Player player){
                 if (source.getEntity() != null) {
-                    sendGroupMessage(player.getPlainTextName() + "死于" + source.getEntity().getPlainTextName()+ "的毒手");
+                    String killerName = source.getEntity().getPlainTextName();
+                    String methodInfo = getMethodInfoByDamageSource(source);
+                    if (methodInfo == null) {
+                        //没有任何可识别的武器：使用默认播报
+                        sendGroupMessage(player.getPlainTextName() + "死于" + killerName + "的毒手");
+                    } else {
+                        //有武器：拼接具体击杀方式
+                        sendGroupMessage(player.getPlainTextName() + "被" + killerName + "下毒手" + methodInfo + "了");
+                    }
                 } else {
                     sendGroupMessage(player.getPlainTextName() + getInfoByDamageSource(source));
                 }
@@ -99,5 +110,61 @@ public class ServerRuntimeEvents {
             return "爆炸了";
         }
         return "死了";
+    }
+    /**
+     * 根据击杀方式返回播报用的动词（如“射死”“砍死”），无法识别武器时返回 null。
+     * 返回值会拼接为“被[击杀者]下毒手[返回值]了”，因此这里不带“了”字。
+     */
+    //Assisted-by: DeepSeek:deepseek-flash
+    //该代码使用了llm辅助，按必要的披露责任将使用的llm列出
+    //This code use LLM assistance and list the LLM used according to necessary disclosure responsibilities.
+    private static String getMethodInfoByDamageSource(DamageSource source){
+        //投掷物 / 特殊攻击：直接根据伤害类型判断
+        if (source.is(DamageTypes.ARROW)) {
+            return "射死";
+        }
+        if (source.is(DamageTypes.TRIDENT)) {
+            return "戳死";
+        }
+        if (source.is(DamageTypes.SPEAR)) {
+            return "刺死";
+        }
+        if (source.is(DamageTypes.MACE_SMASH)) {
+            return "砸死";
+        }
+        if (source.is(DamageTypes.FIREWORKS)) {
+            return "炸死";
+        }
+        if (source.is(DamageTypes.FIREBALL)) {
+            return "烧死";
+        }
+        if (source.is(DamageTypes.THROWN)) {
+            return "砸死";
+        }
+        if (source.is(DamageTypes.WIND_CHARGE)) {
+            return "吹死";
+        }
+
+        //近战：根据击杀者主手武器判断（支持物品标签，兼容模组武器）
+        ItemStack weapon = source.getWeaponItem();
+        if (weapon == null || weapon.isEmpty()) {
+            return null;
+        }
+        if (weapon.is(ItemTags.SWORDS)) {
+            return "劈死";
+        }
+        if (weapon.is(ItemTags.AXES)) {
+            return "砍死";
+        }
+        if (weapon.is(ItemTags.SPEARS)) {
+            return "刺死";
+        }
+        if (weapon.is(Items.MACE)) {
+            return "砸死";
+        }
+        if (weapon.is(Items.TRIDENT)) {
+            return "戳死";
+        }
+        return null;
     }
 }
