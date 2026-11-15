@@ -62,6 +62,44 @@ subprojects {
         }
     }
 
+    //产物校验：除白名单内的普通库外，禁止把任何 mod 以 jar-in-jar 形式嵌套进产物
+    //（KotlinForForge / Fabric Language Kotlin / Architectury / Cloth Config 等都必须由玩家单独安装）
+    tasks.register('verifyNestedJars') {
+        group = 'verification'
+        description = '确保产物中只嵌套了白名单内的普通依赖库，不允许嵌套其他 mod'
+
+        dependsOn tasks.named('jar')
+
+        doLast {
+            def jarFile = tasks.named('jar').get().archiveFile.get().asFile
+            if (!jarFile.exists()) {
+                return
+            }
+
+            def allowed = ['Java-WebSocket']
+            def nested = []
+            new java.util.zip.ZipFile(jarFile).withCloseable { zf ->
+                def entries = zf.entries()
+                while (entries.hasMoreElements()) {
+                    def name = entries.nextElement().name
+                    if (name ==~ /META-INF\/jars\/.+\.jar/) {
+                        nested << name
+                    }
+                }
+            }
+
+            def unexpected = nested.findAll { name -> !allowed.any { name.contains(it) } }
+            if (!unexpected.isEmpty()) {
+                throw new GradleException("${project.path}: 产物中只允许嵌套 ${allowed}，但发现了 ${unexpected}")
+            }
+
+            logger.lifecycle("${project.path}: 嵌套依赖校验通过 ${nested}")
+        }
+    }
+    tasks.named('check') {
+        dependsOn tasks.named('verifyNestedJars')
+    }
+
     //避免重复条目
     tasks.withType(ProcessResources).configureEach {
         exclude 'META-INF/MANIFEST.MF'

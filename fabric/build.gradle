@@ -10,11 +10,14 @@ dependencies {
     implementation "net.fabricmc.fabric-api:fabric-api:$rootProject.fabric_api_version"
     implementation "dev.architectury:architectury-fabric:$rootProject.architectury_api_version"
 
+    // Fabric Language Kotlin 是独立的 mod，必须由玩家自行安装（见 fabric.mod.json 中的依赖声明）。
+    // 不要使用 include 把它嵌套进本体 jar，否则会与玩家单独安装的版本重复、冲突。
     implementation "net.fabricmc:fabric-language-kotlin:$rootProject.fabric_language_kotlin_version"
-    include "net.fabricmc:fabric-language-kotlin:$rootProject.fabric_language_kotlin_version"
 
+    // Cloth Config / Architectury / Fabric API 同样是独立 mod，仅编译期依赖，不打包。
     implementation "me.shedaniel.cloth:cloth-config-fabric:$rootProject.cloth_config_version"
 
+    // 唯一需要随本体分发的普通库依赖（不是 mod），以 jar-in-jar 形式打包。
     include("org.java-websocket:Java-WebSocket:1.6.0") {
         transitive = false
     }
