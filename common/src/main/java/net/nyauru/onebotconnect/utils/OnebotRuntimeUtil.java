@@ -94,6 +94,7 @@ public class OnebotRuntimeUtil {
                 for(Long groupId : BotConfigManager.effectiveGroupIds()){
                     CLIENT.sendGroupMessage(groupId, connectMessage);
                 }
+                //LOGGER.info("Current maxReconnect interval is " + BotConfigManager.config().maxReconnectAttempt);
             } catch (Throwable t) {
                 //播报失败不应让调用方误判为连接失败
                 LOGGER.warn("[ONEBOT] Connected but failed to broadcast announcement", t);

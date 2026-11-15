@@ -114,6 +114,10 @@ public final class BotConfigManager implements OneBotConfig {
         return Duration.ofSeconds(config().actionTimeoutSeconds);
     }
 
+    @Override
+    public int getMaxReconnectAttempt() {
+        return config().maxReconnectAttempt;
+    }
     public static List<Long> groupIds(){
         return List.copyOf(config().groupIds);
     }

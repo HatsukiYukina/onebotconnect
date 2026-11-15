@@ -35,6 +35,7 @@ public class BotConfig implements ConfigData {
     public List<Long> groupIds = new ArrayList<>();
     //配置服务器名称（可选）
     public String serverName = "";
+    public int maxReconnectAttempt = 10;
 
     @Override
     public void validatePostLoad() throws ValidationException {
@@ -58,6 +59,9 @@ public class BotConfig implements ConfigData {
         }
         if (actionTimeoutSeconds <= 0) {
             throw new ValidationException("actionTimeoutSeconds must be positive");
+        }
+        if (maxReconnectAttempt <= 0){
+            throw new ValidationException("maxReconnectAttempt must be positive");
         }
         List<Long> validGroupIds = new ArrayList<>();
         if(groupIds != null){

@@ -19,6 +19,7 @@ interface OneBotConfig {
     val autoReconnect: Boolean get() = true
     val reconnectInterval: Duration get() = Duration.ofSeconds(5)
     val actionTimeout: Duration get() = Duration.ofSeconds(30)
+    val maxReconnectAttempt: Int get() = 10
     val wsUri: URI
         get() {
             val normalizedPath = if (path.startsWith("/")) path else "/$path"

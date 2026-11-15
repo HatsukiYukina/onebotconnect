@@ -358,7 +358,7 @@ class OneBotClient internal constructor(
     }
 
     private fun scheduleReconnectOrDisconnectLocked(lastError: Throwable?) {
-        if (terminalClosed || userClosed || !config.autoReconnect || reconnectAttempt >= MAX_RECONNECT_ATTEMPTS) {
+        if (terminalClosed || userClosed || !config.autoReconnect || reconnectAttempt >= config.maxReconnectAttempt) {
             setState(OneBotConnectionState.Disconnected)
             return
         }
@@ -520,7 +520,7 @@ class OneBotClient internal constructor(
         val MAX_RECONNECT_INTERVAL: Duration = Duration.ofSeconds(120)
 
         //单次断线最多重连上限
-        const val MAX_RECONNECT_ATTEMPTS = 10
+        //const val MAX_RECONNECT_ATTEMPTS = 10
     }
 }
 
