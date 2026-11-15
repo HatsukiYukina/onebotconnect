@@ -13,6 +13,7 @@ import dev.architectury.event.events.common.PlayerEvent;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
@@ -43,6 +44,9 @@ public class ServerRuntimeEvents {
                 if (source.getEntity() != null) {
                     String killerName = source.getEntity().getPlainTextName();
                     String methodInfo = getMethodInfoByDamageSource(source);
+                    if (source.getEntity() instanceof ServerPlayer p) {
+                        killerName = p.getPlainTextName();
+                    }
                     if (methodInfo == null) {
                         //没有任何可识别的武器：使用默认播报
                         sendGroupMessage(player.getPlainTextName() + "死于" + killerName + "的毒手");
@@ -51,7 +55,13 @@ public class ServerRuntimeEvents {
                         sendGroupMessage(player.getPlainTextName() + "被" + killerName + "下毒手" + methodInfo + "了");
                     }
                 } else {
-                    sendGroupMessage(player.getPlainTextName() + getInfoByDamageSource(source));
+                    //死亡事件是在livingEntity中触发的，所以应使用entity.getKillCredit()而不是getLastDamageSource
+                    LivingEntity lastAttacker = entity.getKillCredit();
+                    if (lastAttacker != null && lastAttacker != player) {
+                        sendGroupMessage(player.getPlainTextName() + "因" + lastAttacker.getPlainTextName() + "的黑手注定要" + getInfoByDamageSourceStripped(source));
+                    } else {
+                        sendGroupMessage(player.getPlainTextName() + getInfoByDamageSource(source));
+                    }
                 }
             }
             return EventResult.pass();
@@ -109,12 +119,27 @@ public class ServerRuntimeEvents {
         } else if(source.is(DamageTypes.EXPLOSION)){
             return "爆炸了";
         }
+        return "死";
+    }
+
+    private static String getInfoByDamageSourceStripped(DamageSource source){
+        if(source.is(DamageTypes.FALL)){
+            return "摔死";
+        } else if(source.is(DamageTypes.DROWN)){
+            return "淹死";
+        } else if(source.is(DamageTypes.IN_FIRE)){
+            return "烧死";
+        } else if(source.is(DamageTypes.LAVA)){
+            return "掉进岩浆";
+        } else if(source.is(DamageTypes.STARVE)){
+            return "饿死";
+        } else if(source.is(DamageTypes.FELL_OUT_OF_WORLD)){
+            return "掉出这个世界";
+        } else if(source.is(DamageTypes.EXPLOSION)){
+            return "爆炸";
+        }
         return "死了";
     }
-    /**
-     * 根据击杀方式返回播报用的动词（如“射死”“砍死”），无法识别武器时返回 null。
-     * 返回值会拼接为“被[击杀者]下毒手[返回值]了”，因此这里不带“了”字。
-     */
     //Assisted-by: DeepSeek:deepseek-flash
     //该代码使用了llm辅助，按必要的披露责任将使用的llm列出
     //This code use LLM assistance and list the LLM used according to necessary disclosure responsibilities.
@@ -144,26 +169,25 @@ public class ServerRuntimeEvents {
         if (source.is(DamageTypes.WIND_CHARGE)) {
             return "吹死";
         }
-
         //近战：根据击杀者主手武器判断（支持物品标签，兼容模组武器）
         ItemStack weapon = source.getWeaponItem();
         if (weapon == null || weapon.isEmpty()) {
             return null;
         }
         if (weapon.is(ItemTags.SWORDS)) {
-            return "劈死";
+            return "用[" + weapon.getItemName().getString() + "]劈死";
         }
         if (weapon.is(ItemTags.AXES)) {
-            return "砍死";
+            return "用["+ weapon.getItemName().getString() + "]砍死";
         }
         if (weapon.is(ItemTags.SPEARS)) {
-            return "刺死";
+            return "用[" + weapon.getItemName().getString() + "]刺死";
         }
         if (weapon.is(Items.MACE)) {
-            return "砸死";
+            return "用[" + weapon.getItemName().getString() + "]砸死";
         }
         if (weapon.is(Items.TRIDENT)) {
-            return "戳死";
+            return "用[" + weapon.getItemName().getString() + "]戳死";
         }
         return null;
     }

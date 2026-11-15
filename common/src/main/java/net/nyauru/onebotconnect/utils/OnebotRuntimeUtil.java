@@ -49,7 +49,9 @@ public class OnebotRuntimeUtil {
                     PlayerList playerList = server.getPlayerList();
 
                     for (Player p : playerList.getPlayers()) {
-                        p.sendSystemMessage(Component.literal("[" + (event.getMessageType().equals("group") ? "群聊" : "私聊") + "]" + event.getSender().getNickname().toString() + ":" + event.getPlainText()));
+                        if(event.getSender() != null){
+                            p.sendSystemMessage(Component.literal("[" + (event.getMessageType().equals("group") ? "群聊" : "私聊") + "]" + event.getSender().getNickname() + ":" + event.getPlainText()));
+                        }
                     }
                     //System.out.println(event.getMessage());
                 }
