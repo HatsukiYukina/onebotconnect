@@ -118,8 +118,10 @@ public class ServerRuntimeEvents {
             return "掉出了这个世界";
         } else if(source.is(DamageTypes.EXPLOSION)){
             return "爆炸了";
+        } else if (source.is(DamageTypes.SWEET_BERRY_BUSH)){
+            return "被甜浆果丛刺死了";
         }
-        return "死";
+        return "死了";
     }
 
     private static String getInfoByDamageSourceStripped(DamageSource source){
