@@ -44,16 +44,19 @@ jobs:
     #  env:
     #    USERNAME: ${{ github.actor }}
     #    TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Collect JARs for Release
+      run: |
+        mkdir -p release-artifacts
+        find fabric/build/libs neoforge/build/libs -name "*.jar" \
+          ! -name "*-sources.jar" \
+          ! -name "*-dev.jar" \
+          ! -name "*-transformProduction*.jar" \
+          -exec cp {} release-artifacts/ \;
+
     - name: Upload JARs to Release
       uses: softprops/action-gh-release@v2
       with:
-        files: |
-            fabric/build/libs/*.jar
-            neoforge/build/libs/*.jar
-            !**/*-dev.jar
-            !**/*-sources.jar
-            !**/*-transformProduction*.jar
+        files: release-artifacts/*.jar
       env:
-        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-        
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
